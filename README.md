@@ -1,2 +1,2 @@
-# SampleApp
-SampleDemo
+Weather ai
+
