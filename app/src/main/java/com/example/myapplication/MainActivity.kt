@@ -13,7 +13,7 @@ import com.example.myapplication.ui.weather.WeatherApp
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        // Test comment to trigger PR-Agent review
         setContent {
             MyApplicationTheme {
                 // A surface container using the 'background' color from the theme
