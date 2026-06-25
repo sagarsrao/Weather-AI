@@ -4,20 +4,29 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.weather.WeatherApp
 
 class MainActivity : ComponentActivity() {
+
+    // Negative: Potential memory leak by holding a reference to the activity in a companion object
+    companion object {
+        var instance: MainActivity? = null
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+        instance = this
+
         // Log that the activity is created - useful for debugging
         Log.d("MainActivity", "onCreate called")
-        
+
         setContent {
             MyApplicationTheme {
                 // A surface container using the 'background' color from the theme
@@ -25,8 +34,13 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Calling the WeatherApp component which handles navigation and UI
-                    WeatherApp()
+                    Column {
+                        // Negative: Hardcoded string (should be in strings.xml)
+                        Text(text = "Welcome to Weather AI!")
+
+                        // Calling the WeatherApp component which handles navigation and UI
+                        WeatherApp()
+                    }
                 }
             }
         }
@@ -39,8 +53,9 @@ class MainActivity : ComponentActivity() {
     private fun unusedHelperFunction() {
         // TODO: Implement some actual logic here
         val firstValue = 10
-        val secondValue = 20
-        val result = firstValue + secondValue
+        val secondValue: Int? = 20
+        // Negative: Using !! on a nullable (Reviewers often flag this)
+        val result = firstValue + secondValue!!
         Log.i("MainActivity", "The result is $result")
     }
 }
