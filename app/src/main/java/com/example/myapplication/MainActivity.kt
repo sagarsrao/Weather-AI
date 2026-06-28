@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
         Log.d("MainActivity", "onCreate called")
         super.onCreate(savedInstanceState)
         instance = this
-
+        instance = this
         // Log that the activity is created - useful for debugging
         Log.d("MainActivity", "onCreate called")
 
