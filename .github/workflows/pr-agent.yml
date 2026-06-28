@@ -14,9 +14,53 @@ jobs:
       pull-requests: write
       contents: read
     name: Run PR Agent
+
     steps:
-      - name: PR Agent action
-        uses: docker://pragent/pr-agent:latest  # new namespace as of v0.34.2
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PR-Agent
+        run: pip install pr-agent
+
+      # Runs /describe on newly opened PRs
+      - name: Auto-describe PR
+        if: github.event_name == 'pull_request' && github.event.action == 'opened'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GROQ__KEY: ${{ secrets.GROQ_API_KEY }}
+          CONFIG__MODEL: "groq/llama-3.3-70b-versatile"
+        run: |
+          python -m pr_agent.cli \
+            --pr_url=${{ github.event.pull_request.html_url }} \
+            describe
+
+      # Runs /review on every push to a PR
+      - name: Auto-review PR
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GROQ__KEY: ${{ secrets.GROQ_API_KEY }}
+          CONFIG__MODEL: "groq/llama-3.3-70b-versatile"
+        run: |
+          python -m pr_agent.cli \
+            --pr_url=${{ github.event.pull_request.html_url }} \
+            review
+
+      # Handles slash commands (/review, /describe, /improve, /ask "...")
+      - name: Handle slash command
+        if: |
+          github.event_name == 'issue_comment' &&
+          github.event.issue.pull_request != null &&
+          startsWith(github.event.comment.body, '/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GROQ__KEY: ${{ secrets.GROQ_API_KEY }}
+          CONFIG__MODEL: "groq/llama-3.3-70b-versatile"
+        run: |
+          PR_URL="https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}"
+          COMMENT="${{ github.event.comment.body }}"
+          CMD=$(echo "$COMMENT" | awk '{print $1}' | sed 's|/||')
+          ARGS=$(echo "$COMMENT" | cut -d' ' -f2-)
+          python -m pr_agent.cli --pr_url="$PR_URL" "$CMD" "$ARGS"
