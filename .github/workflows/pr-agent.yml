@@ -2,34 +2,21 @@ name: PR Agent
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize, ready_for_review]
+    types: [opened, synchronize, reopened]
   issue_comment:
     types: [created]
 
 jobs:
   pr_agent_job:
-    # Do not run on bot comments or if triggered by other bots
-    if: ${{ github.event.sender.type != 'Bot' }}
     runs-on: ubuntu-latest
     permissions:
       issues: write
       pull-requests: write
-      contents: write
+      contents: read
+    name: Run PR Agent
     steps:
-      - name: PR Agent Action
-        uses: the-pr-agent/pr-agent@main
+      - name: PR Agent action
+        uses: docker://pragent/pr-agent:latest  # new namespace as of v0.34.2
         env:
-          # Automatically provided by GitHub for API operations
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-          # AI Provider API Keys (Uncomment/set the one you intend to use)
-          # Make sure to add the corresponding secret in your GitHub repository settings.
-          
-          # For Google Gemini (Recommended default):
-          GOOGLE_AI_STUDIO.GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          
-          # For OpenAI:
-          # OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
-          
-          # For Anthropic:
-          # ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
+          GROQ__KEY: ${{ secrets.GROQ_API_KEY }}

@@ -2,24 +2,16 @@
 # For a full list of options, see: https://github.com/The-PR-Agent/pr-agent/blob/main/pr_agent/settings/configuration.toml
 
 [config]
-# Default model (configured for Google Gemini)
-model = "gemini/gemini-1.5-flash"
-fallback_models = ["gemini/gemini-1.5-pro"]
+# Swapped from Gemini → Groq (free, open-source Llama 3.3 70B)
+model = "groq/llama-3.3-70b-versatile"
+fallback_models = ["groq/llama-3.1-70b-versatile"]
 
-# Language of the PR-Agent responses
 response_language = "en-US"
-
-# Output configuration details in the log (useful for debugging)
 output_relevant_configurations = false
 
 [pr_reviewer]
-# Number of code suggestions to provide in the review
 num_code_suggestions = 4
-
-# Publish review suggestions as inline comments directly in the code diff
 inline_code_comments = true
-
-# Custom guidelines for the AI reviewer tailored for an Android/Kotlin project
 extra_instructions = """
 - Verify Kotlin coding conventions, including null-safety best practices (avoiding unnecessary double bangs `!!`).
 - Look for potential memory leaks, especially in Android components (e.g., holding onto Context, LifecycleOwners, or View references improperly).
@@ -29,21 +21,14 @@ extra_instructions = """
 """
 
 [pr_description]
-# Automatically publish labels (e.g. bug, enhancement) based on PR content
 publish_labels = true
-
-# Enable/disable generating a list of changes in the PR description
 generate_description_changelog = true
 
 [github_action_config]
-# Automatically run the /review command when a PR is opened
 auto_review = true
-
-# Automatically run the /describe command when a PR is opened
 auto_describe = true
 
 [ignore]
-# Files or directories to ignore during analysis to reduce noise and token usage
 glob = [
     "*.idea/*",
     "*.gradle/*",
