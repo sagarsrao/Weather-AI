@@ -22,7 +22,8 @@ jobs:
           python-version: '3.11'
 
       - name: Install PR-Agent
-        run: pip install pr-agent
+        run: |
+          pip install "httpx<0.28.0" pr-agent
 
       - name: Auto-describe PR
         if: github.event_name == 'pull_request' && github.event.action == 'opened'

@@ -5,7 +5,7 @@
 # Swapped from Gemini → Groq (free, open-source Llama 3.3 70B)
 model = "groq/llama-3.3-70b-versatile"
 fallback_models = ["groq/llama-3.1-70b-versatile"]
-
+custom_model_max_tokens = 32000   # ← add this line
 response_language = "en-US"
 output_relevant_configurations = false
 
