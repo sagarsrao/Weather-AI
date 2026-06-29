@@ -22,6 +22,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d("MainActivity", "onCreate called")
+        Log.d("MainActivity", "onCreate called")
         super.onCreate(savedInstanceState)
         instance = this
         // Log that the activity is created - useful for debugging
