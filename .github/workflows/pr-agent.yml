@@ -24,11 +24,11 @@ jobs:
       - name: Install PR-Agent
         run: pip install pr-agent
 
-      # Runs /describe on newly opened PRs
       - name: Auto-describe PR
         if: github.event_name == 'pull_request' && github.event.action == 'opened'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB__USER_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # ← this was missing
           GROQ__KEY: ${{ secrets.GROQ_API_KEY }}
           CONFIG__MODEL: "groq/llama-3.3-70b-versatile"
         run: |
@@ -36,11 +36,11 @@ jobs:
             --pr_url=${{ github.event.pull_request.html_url }} \
             describe
 
-      # Runs /review on every push to a PR
       - name: Auto-review PR
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB__USER_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # ← this was missing
           GROQ__KEY: ${{ secrets.GROQ_API_KEY }}
           CONFIG__MODEL: "groq/llama-3.3-70b-versatile"
         run: |
@@ -48,7 +48,6 @@ jobs:
             --pr_url=${{ github.event.pull_request.html_url }} \
             review
 
-      # Handles slash commands (/review, /describe, /improve, /ask "...")
       - name: Handle slash command
         if: |
           github.event_name == 'issue_comment' &&
@@ -56,6 +55,7 @@ jobs:
           startsWith(github.event.comment.body, '/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB__USER_TOKEN: ${{ secrets.GITHUB_TOKEN }}   # ← this was missing
           GROQ__KEY: ${{ secrets.GROQ_API_KEY }}
           CONFIG__MODEL: "groq/llama-3.3-70b-versatile"
         run: |
