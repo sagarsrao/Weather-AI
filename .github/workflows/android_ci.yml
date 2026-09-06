@@ -33,8 +33,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Validate Gradle Wrapper
-        uses: gradle/actions/wrapper-validation@v2
+
 
       - name: Run Android Lint
         run: ./gradlew lint
