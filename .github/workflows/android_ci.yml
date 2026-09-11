@@ -33,8 +33,6 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-
-
       - name: Run Android Lint
         run: ./gradlew lint
 
@@ -62,7 +60,7 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
           disable-animations: true
           force-avd-creation: true
-          script: ./gradlew :app:createDebugAndroidTestCoverageReport
+          script: ./gradlew :app:verifyCoverage
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug
