@@ -52,6 +52,153 @@ android {
     }
 }
 
+tasks.register("verifyCoverage") {
+    dependsOn("createDebugAndroidTestCoverageReport")
+
+    doLast {
+        val reportFile = file(
+            "build/reports/coverage/androidTest/debug/connected/report.xml"
+        )
+
+        if (!reportFile.exists()) {
+            throw GradleException(
+                "JaCoCo coverage report not found: ${reportFile.absolutePath}"
+            )
+        }
+
+        val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+
+        factory.setFeature(
+            "http://apache.org/xml/features/nonvalidating/load-external-dtd",
+            false
+        )
+
+        factory.setFeature(
+            "http://xml.org/sax/features/validation",
+            false
+        )
+
+        factory.setFeature(
+            "http://apache.org/xml/features/disallow-doctype-decl",
+            false
+        )
+
+        factory.isXIncludeAware = false
+        factory.isExpandEntityReferences = false
+
+        val document = factory.newDocumentBuilder().parse(reportFile)
+
+        val counters = document.getElementsByTagName("counter")
+
+        var instructionMissed = 0
+        var instructionCovered = 0
+        var branchMissed = 0
+        var branchCovered = 0
+
+        for (i in 0 until counters.length) {
+            val counter = counters.item(i)
+
+            val type = counter.attributes
+                .getNamedItem("type")
+                ?.nodeValue
+
+            when (type) {
+                "INSTRUCTION" -> {
+                    instructionMissed = counter.attributes
+                        .getNamedItem("missed")
+                        .nodeValue
+                        .toInt()
+
+                    instructionCovered = counter.attributes
+                        .getNamedItem("covered")
+                        .nodeValue
+                        .toInt()
+                }
+
+                "BRANCH" -> {
+                    branchMissed = counter.attributes
+                        .getNamedItem("missed")
+                        .nodeValue
+                        .toInt()
+
+                    branchCovered = counter.attributes
+                        .getNamedItem("covered")
+                        .nodeValue
+                        .toInt()
+                }
+            }
+        }
+
+        val instructionTotal =
+            instructionMissed + instructionCovered
+
+        val branchTotal =
+            branchMissed + branchCovered
+
+        val instructionCoverage =
+            if (instructionTotal > 0) {
+                instructionCovered.toDouble() /
+                    instructionTotal * 100
+            } else {
+                0.0
+            }
+
+        val branchCoverage =
+            if (branchTotal > 0) {
+                branchCovered.toDouble() /
+                    branchTotal * 100
+            } else {
+                0.0
+            }
+
+        val minimumInstructionCoverage = 80.0
+        val minimumBranchCoverage = 50.0
+
+        println()
+        println("========================================")
+        println("      JaCoCo Coverage Quality Gate")
+        println("========================================")
+        println(
+            "Instruction Coverage: %.2f%% (minimum %.2f%%)"
+                .format(
+                    instructionCoverage,
+                    minimumInstructionCoverage
+                )
+        )
+        println(
+            "Branch Coverage:      %.2f%% (minimum %.2f%%)"
+                .format(
+                    branchCoverage,
+                    minimumBranchCoverage
+                )
+        )
+        println("========================================")
+        println()
+
+        if (instructionCoverage < minimumInstructionCoverage) {
+            throw GradleException(
+                "Instruction coverage %.2f%% is below required %.2f%%"
+                    .format(
+                        instructionCoverage,
+                        minimumInstructionCoverage
+                    )
+            )
+        }
+
+        if (branchCoverage < minimumBranchCoverage) {
+            throw GradleException(
+                "Branch coverage %.2f%% is below required %.2f%%"
+                    .format(
+                        branchCoverage,
+                        minimumBranchCoverage
+                    )
+            )
+
+            println("JaCoCo coverage quality gate PASSED.")
+        }
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
