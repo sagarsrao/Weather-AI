@@ -1,15 +1,17 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    id("org.jlleitschuh.gradle.ktlint")
     alias(libs.plugins.detekt)
 }
 
 android {
     namespace = "com.example.myapplication"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version =
+            release(36) {
+                minorApiLevel = 1
+            }
     }
 
     defaultConfig {
@@ -32,7 +34,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -57,31 +59,34 @@ tasks.register("verifyCoverage") {
     dependsOn("createDebugAndroidTestCoverageReport")
 
     doLast {
-        val reportFile = file(
-            "build/reports/coverage/androidTest/debug/connected/report.xml"
-        )
+        val reportFile =
+            file(
+                "build/reports/coverage/androidTest/debug/connected/report.xml",
+            )
 
         if (!reportFile.exists()) {
             throw GradleException(
-                "JaCoCo coverage report not found: ${reportFile.absolutePath}"
+                "JaCoCo coverage report not found: ${reportFile.absolutePath}",
             )
         }
 
-        val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+        val factory =
+            javax.xml.parsers.DocumentBuilderFactory
+                .newInstance()
 
         factory.setFeature(
             "http://apache.org/xml/features/nonvalidating/load-external-dtd",
-            false
+            false,
         )
 
         factory.setFeature(
             "http://xml.org/sax/features/validation",
-            false
+            false,
         )
 
         factory.setFeature(
             "http://apache.org/xml/features/disallow-doctype-decl",
-            false
+            false,
         )
 
         factory.isXIncludeAware = false
@@ -99,33 +104,38 @@ tasks.register("verifyCoverage") {
         for (i in 0 until counters.length) {
             val counter = counters.item(i)
 
-            val type = counter.attributes
-                .getNamedItem("type")
-                ?.nodeValue
+            val type =
+                counter.attributes
+                    .getNamedItem("type")
+                    ?.nodeValue
 
             when (type) {
                 "INSTRUCTION" -> {
-                    instructionMissed = counter.attributes
-                        .getNamedItem("missed")
-                        .nodeValue
-                        .toInt()
+                    instructionMissed =
+                        counter.attributes
+                            .getNamedItem("missed")
+                            .nodeValue
+                            .toInt()
 
-                    instructionCovered = counter.attributes
-                        .getNamedItem("covered")
-                        .nodeValue
-                        .toInt()
+                    instructionCovered =
+                        counter.attributes
+                            .getNamedItem("covered")
+                            .nodeValue
+                            .toInt()
                 }
 
                 "BRANCH" -> {
-                    branchMissed = counter.attributes
-                        .getNamedItem("missed")
-                        .nodeValue
-                        .toInt()
+                    branchMissed =
+                        counter.attributes
+                            .getNamedItem("missed")
+                            .nodeValue
+                            .toInt()
 
-                    branchCovered = counter.attributes
-                        .getNamedItem("covered")
-                        .nodeValue
-                        .toInt()
+                    branchCovered =
+                        counter.attributes
+                            .getNamedItem("covered")
+                            .nodeValue
+                            .toInt()
                 }
             }
         }
@@ -163,15 +173,15 @@ tasks.register("verifyCoverage") {
             "Instruction Coverage: %.2f%% (minimum %.2f%%)"
                 .format(
                     instructionCoverage,
-                    minimumInstructionCoverage
-                )
+                    minimumInstructionCoverage,
+                ),
         )
         println(
             "Branch Coverage:      %.2f%% (minimum %.2f%%)"
                 .format(
                     branchCoverage,
-                    minimumBranchCoverage
-                )
+                    minimumBranchCoverage,
+                ),
         )
         println("========================================")
         println()
@@ -181,8 +191,8 @@ tasks.register("verifyCoverage") {
                 "Instruction coverage %.2f%% is below required %.2f%%"
                     .format(
                         instructionCoverage,
-                        minimumInstructionCoverage
-                    )
+                        minimumInstructionCoverage,
+                    ),
             )
         }
 
@@ -191,8 +201,8 @@ tasks.register("verifyCoverage") {
                 "Branch coverage %.2f%% is below required %.2f%%"
                     .format(
                         branchCoverage,
-                        minimumBranchCoverage
-                    )
+                        minimumBranchCoverage,
+                    ),
             )
 
             println("JaCoCo coverage quality gate PASSED.")
