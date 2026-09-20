@@ -15,6 +15,7 @@ class WeatherViewModel(
     private val _weatherState = MutableStateFlow<WeatherState>(WeatherState.Loading)
     val weatherState: StateFlow<WeatherState> = _weatherState
 
+    @Suppress("TooGenericExceptionCaught")
     fun fetchWeather(lat: Double, lon: Double) {
         _weatherState.value = WeatherState.Loading
         viewModelScope.launch {

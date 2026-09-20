@@ -1,19 +1,38 @@
 package com.example.myapplication.ui.weather
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,8 +41,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import com.example.myapplication.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -32,9 +49,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import coil.compose.AsyncImage
+import com.example.myapplication.R
 import com.example.myapplication.data.WeatherRepository
 import com.example.myapplication.di.NetworkModule
-import com.example.myapplication.model.*
+import com.example.myapplication.model.StateInfo
+import com.example.myapplication.model.WeatherResponse
+import com.example.myapplication.model.indianStates
+import com.example.myapplication.model.toWeatherDescription
 
 @Composable
 fun WeatherApp() {
@@ -170,65 +192,15 @@ fun WeatherDetailContent(stateInfo: StateInfo, weatherData: WeatherResponse) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Card(shape = RoundedCornerShape(24.dp)) {
-                Box(modifier = Modifier.height(250.dp)) {
-                    AsyncImage(
-                        model = stateInfo.imageUrl,
-                        placeholder = painterResource(id = R.drawable.state_placeholder),
-                        error = painterResource(id = R.drawable.state_placeholder),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    Surface(
-                        color = Color.Black.copy(alpha = 0.3f),
-                        modifier = Modifier.fillMaxSize()
-                    ) {}
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "${weatherData.current?.temperature ?: "--"}°C",
-                            color = Color.White,
-                            fontSize = 64.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = weatherData.current?.weatherCode?.toWeatherDescription() ?: "Unknown",
-                            color = Color.White,
-                            fontSize = 24.sp
-                        )
-                    }
-                }
-            }
+            CurrentWeatherCard(stateInfo = stateInfo, weatherData = weatherData)
         }
 
         item {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                InfoTile("Humidity", "${weatherData.current?.humidity ?: "--"}%")
-                InfoTile("Wind", "${weatherData.current?.windSpeed ?: "--"} km/h")
-            }
+            WeatherInfoTiles(weatherData = weatherData)
         }
 
         item {
-            Text("Hourly Forecast", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                val hourly = weatherData.hourly
-                if (hourly != null) {
-                    val itemCount = if (hourly.time.size > 24) 24 else hourly.time.size
-                    items(itemCount) { index ->
-                        HourlyItem(
-                            time = hourly.time[index].substringAfter("T"),
-                            temp = hourly.temperatures[index],
-                            code = hourly.weatherCodes[index]
-                        )
-                    }
-                }
-            }
+            HourlyForecastSection(weatherData = weatherData)
         }
 
         item {
@@ -249,6 +221,71 @@ fun WeatherDetailContent(stateInfo: StateInfo, weatherData: WeatherResponse) {
     }
 }
 
+@Composable
+fun CurrentWeatherCard(stateInfo: StateInfo, weatherData: WeatherResponse) {
+    Card(shape = RoundedCornerShape(24.dp)) {
+        Box(modifier = Modifier.height(250.dp)) {
+            AsyncImage(
+                model = stateInfo.imageUrl,
+                placeholder = painterResource(id = R.drawable.state_placeholder),
+                error = painterResource(id = R.drawable.state_placeholder),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            Surface(
+                color = Color.Black.copy(alpha = 0.3f),
+                modifier = Modifier.fillMaxSize()
+            ) {}
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "${weatherData.current?.temperature ?: "--"}°C",
+                    color = Color.White,
+                    fontSize = 64.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = weatherData.current?.weatherCode?.toWeatherDescription() ?: "Unknown",
+                    color = Color.White,
+                    fontSize = 24.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun WeatherInfoTiles(weatherData: WeatherResponse) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        InfoTile("Humidity", "${weatherData.current?.humidity ?: "--"}%")
+        InfoTile("Wind", "${weatherData.current?.windSpeed ?: "--"} km/h")
+    }
+}
+
+@Composable
+fun HourlyForecastSection(weatherData: WeatherResponse) {
+    Text("Hourly Forecast", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+    Spacer(modifier = Modifier.height(8.dp))
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        val hourly = weatherData.hourly
+        if (hourly != null) {
+            val itemCount = if (hourly.time.size > 24) 24 else hourly.time.size
+            items(itemCount) { index ->
+                HourlyItem(
+                    time = hourly.time[index].substringAfter("T"),
+                    temp = hourly.temperatures[index],
+                    code = hourly.weatherCodes[index]
+                )
+            }
+        }
+    }
+}
+
 @Suppress("UNCHECKED_CAST")
 class WeatherViewModelFactory(private val weatherRepository: WeatherRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -259,9 +296,11 @@ class WeatherViewModelFactory(private val weatherRepository: WeatherRepository) 
     }
 }
 
+private val INFO_TILE_WIDTH = 150.dp
+
 @Composable
 fun InfoTile(label: String, value: String) {
-    Card(modifier = Modifier.width(150.dp)) {
+    Card(modifier = Modifier.width(INFO_TILE_WIDTH)) {
         Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(label, fontSize = 14.sp, color = Color.Gray)
             Text(value, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -283,6 +322,8 @@ fun HourlyItem(time: String, temp: Double, code: Int) {
     }
 }
 
+private const val DESCRIPTION_WEIGHT = 1.5f
+
 @Composable
 fun DailyItem(date: String, maxTemp: Double, minTemp: Double, code: Int) {
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -294,7 +335,7 @@ fun DailyItem(date: String, maxTemp: Double, minTemp: Double, code: Int) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(date, modifier = Modifier.weight(1f))
-            Text(code.toWeatherDescription(), modifier = Modifier.weight(1.5f), fontSize = 14.sp)
+            Text(code.toWeatherDescription(), modifier = Modifier.weight(DESCRIPTION_WEIGHT), fontSize = 14.sp)
             Text("${maxTemp.toInt()}° / ${minTemp.toInt()}°", fontWeight = FontWeight.Bold)
         }
     }

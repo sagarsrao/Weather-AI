@@ -44,6 +44,7 @@ data class StateInfo(
     val imageUrl: String
 )
 
+@Suppress("MagicNumber")
 fun Int.toWeatherDescription(): String {
     return when (this) {
         0 -> "Clear sky"
