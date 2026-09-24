@@ -3,5 +3,15 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.compose) apply false
     id("org.jlleitschuh.gradle.ktlint") version "13.1.0" apply false
-
+    id("org.sonarqube") version "7.5.0.8588"
+}
+sonar {
+    properties {
+        property("sonar.projectKey", "sagarsrao_Weather-AI")
+        property("sonar.organization", "sagarsrao")
+        property("sonar.host.url", "https://sonarcloud.io")
+    }
+}
+tasks.named("sonar") {
+    dependsOn(":app:lint")
 }
