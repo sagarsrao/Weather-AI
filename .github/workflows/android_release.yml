@@ -1,0 +1,57 @@
+name: Android Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-release-artifact:
+    name: Build and Package Debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Run quality checks and build APK
+        run: ./gradlew lint :app:detekt ktlintCheck test assembleDebug
+
+      - name: Prepare APK and checksum
+        run: |
+          APK="Weather-AI-${GITHUB_REF_NAME}-debug.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "$APK"
+          sha256sum "$APK" > "$APK.sha256"
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: weather-ai-debug-${{ github.ref_name }}
+          path: |
+            Weather-AI-*-debug.apk
+            Weather-AI-*-debug.apk.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Create GitHub prerelease
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Weather-AI ${{ github.ref_name }}
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            Weather-AI-*-debug.apk
+            Weather-AI-*-debug.apk.sha256
