@@ -252,4 +252,3 @@ sonar {
         property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/coverage/androidTest/debug/connected/report.xml")
     }
 }
-
